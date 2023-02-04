@@ -2,10 +2,20 @@ import Head from 'next/head';
 import {products} from "@/data/products";
 import {Card, Container, Group, Image, SimpleGrid, Text, Badge, ThemeIcon} from '@mantine/core';
 import {IconShoppingCart, IconShoppingCartPlus} from "@tabler/icons-react";
+import {centsToCurrency} from "@/service/currency";
 
 
 export default function Home(props) {
 
+    const handleCartPlus = (productIndex) => {
+        const currentCart = new Map(JSON.parse(window.localStorage.getItem("cart")));
+        currentCart.has(products[productIndex].product) ?
+            currentCart.get(products[productIndex].product).amount += 1
+            :
+            currentCart.set(products[productIndex].product, {productDetails: products[productIndex], amount: 1})
+        window.localStorage.setItem("cart", JSON.stringify(Array.from(currentCart.entries())));
+        props.setCartOpen(true);
+    }
 
     return (
         <>
@@ -22,10 +32,8 @@ export default function Home(props) {
                                 <Card.Section>
                                     <ThemeIcon
                                         style={{zIndex: 3, position: "absolute", margin: "15px", right: 0}}
-                                        radius="xl" size="lg" onClick={() => {
-                                        props.setCartOpen(true)
-                                    }}
-                                               variant="gradient" gradient={{from: 'teal', to: 'lime', deg: 60}}>
+                                        radius="xl" size="lg" onClick={() => handleCartPlus(index)}
+                                        variant="gradient" gradient={{from: 'teal', to: 'lime', deg: 60}}>
                                         <IconShoppingCartPlus size="22"/>
                                     </ThemeIcon>
 
@@ -34,7 +42,7 @@ export default function Home(props) {
                                 </Card.Section>
                                 <Group position="apart">
                                     <Text weight={500} py="xs">{product.product}</Text>
-                                    <Badge color="lime" variant="light">{(product.price/100).toLocaleString("en-US", {style:"currency", currency:"USD"})}</Badge>
+                                    <Badge color="lime" variant="light">{centsToCurrency(product.price)}</Badge>
                                 </Group>
 
                                 <Text size="sm" color="dimmed">{product.description}</Text>
