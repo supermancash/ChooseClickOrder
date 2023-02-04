@@ -7,7 +7,7 @@ const sendMail = (customerDetails, cartDetails) => {
     const transporter = nodemailer.createTransport({
         host: 'smtp.strato.de',
         port: 587,
-        secure: false,
+        secure: process.env.NODE_ENV === 'production',
         auth: {
             user: process.env.STRATO_MAIL_USER,
             pass: process.env.STRATO_MAIL_PASSWORD,
