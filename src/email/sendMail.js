@@ -24,7 +24,7 @@ const sendMail = (customerDetails, cartDetails) => {
     };
 
     try {
-        transporter.sendMail(options);
+        transporter.sendMail(options).then(r => console.log(r));
     } catch(e) {
         console.log(e)
     }
