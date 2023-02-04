@@ -71,7 +71,6 @@ export default function App(props) {
                                 onClick={() => {
                                     const cartContentsCopy = new Map(cartContents);
                                     cartContentsCopy.delete(key);
-                                    console.log(cartContentsCopy)
                                     localStorageCartUpdate(cartContentsCopy);
                                 }}/>
 
@@ -79,8 +78,7 @@ export default function App(props) {
                         <ThemeIcon radius="100%" style={{cursor: "pointer"}} color="red"
                                    onClick={() => {
                                        const cartContentsCopy = new Map(cartContents);
-                                       cartContentsCopy.get(key).amount+=1;
-                                       console.log(cartContentsCopy)
+                                       cartContentsCopy.get(key).amount += 1;
                                        localStorageCartUpdate(cartContentsCopy);
                                    }}>
                             +
@@ -88,11 +86,10 @@ export default function App(props) {
                         <ThemeIcon radius="100%" style={{cursor: "pointer"}} color="red" variant="light"
                                    onClick={() => {
                                        const cartContentsCopy = new Map(cartContents);
-                                       cartContentsCopy.get(key).amount===1 ?
+                                       cartContentsCopy.get(key).amount === 1 ?
                                            cartContentsCopy.delete(key)
                                            :
-                                           cartContentsCopy.get(key).amount-=1;
-                                       console.log(cartContentsCopy)
+                                           cartContentsCopy.get(key).amount -= 1;
                                        localStorageCartUpdate(cartContentsCopy);
                                    }}>
                             -
@@ -123,7 +120,8 @@ export default function App(props) {
         <>
             <Head>
                 <title>Page title</title>
-                <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width"/>
+                <meta name="viewport"
+                      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
             </Head>
 
             <MantineProvider

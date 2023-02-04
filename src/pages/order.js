@@ -9,38 +9,43 @@ import {
     TextInput,
     ThemeIcon,
     Transition,
-    Button
+    Button, FocusTrap
 } from "@mantine/core";
 import {IconChevronRight, IconTrashX} from "@tabler/icons-react";
 import {useEffect, useRef, useState} from "react";
 import {centsToCurrency} from "@/service/currency";
-import {useFocusTrap, useHotkeys} from "@mantine/hooks";
+import {getHotkeyHandler, useFocusTrap, useHotkeys} from "@mantine/hooks";
 
 const Order = () => {
+    // TODO: check that cart isn't empty
+
+    console.log(process.env.VERCEL_URL)
+
     const [count, setCount] = useState(0);
     const [review, setReview] = useState(false);
     const [errorState, setErrorState] = useState("");
+    const [currentCart, setCurrentCart] = useState(new Map());
     const ref = useRef([]);
     const orderDataRef = useRef(new Map());
 
+
     // for usability
-    const focusTrapRef= useFocusTrap();
     useHotkeys([
         ['Enter', () => handleContinue()],
     ]);
 
 
     useEffect(() => {
-        ref.current = ref.current.slice(0, orderInputs.length)
+        ref.current = ref.current.slice(0, orderInputs.length);
+        setCurrentCart(new Map(JSON.parse(window.localStorage.getItem("cart"))));
     }, [])
 
 
     const handleContinue = () => {
-        // TODO: save input
 
         const currentRef = ref.current[count / 2].value;
         if (currentRef === "" && count < orderInputs.length * 2 - 2) return setErrorState("This field is mandatory");
-        if (count === 2 && !/(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
+        if (count === 10 && !/(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
             .test(currentRef)) return setErrorState("Please enter a valid email");
         // input checked
 
@@ -57,25 +62,49 @@ const Order = () => {
     }
 
     const handleCheckout = () => {
-        alert("Thank you for your oder");
-        // TODO: post to endpoint with data and reroute back to index with thank you popup
+
+        fetch("/api/orders", {
+            method: 'POST',
+            body: JSON.stringify({
+                customerDetails: JSON.stringify(Array.from(orderDataRef.current)),
+                cartDetails: JSON.stringify(Array.from(currentCart))
+            }),
+        }).then(res => res.json())
+            .then(res => alert(JSON.stringify(res)))
+
+        // TODO: reroute back to index with thank you popup
     }
 
 
     const orderInputs = [
         {
-            label: "Full Name",
-            placeholder: "Your full name",
+            label: "First Name",
+            placeholder: "Your First Name",
+            mandatory: true
+        },
+        {
+            label: "Second Name",
+            placeholder: "Your Second Name",
+            mandatory: true
+        },
+        {
+            label: "Address",
+            placeholder: "Your home address",
+            mandatory: true
+        },
+        {
+            label: "Postal Code",
+            placeholder: "Your postal code",
+            mandatory: true
+        },
+        {
+            label: "City",
+            placeholder: "The city in which your home is",
             mandatory: true
         },
         {
             label: "Email",
             placeholder: "Your email address",
-            mandatory: true
-        },
-        {
-            label: "Full Address",
-            placeholder: "Your home address",
             mandatory: true
         },
         {
@@ -91,7 +120,6 @@ const Order = () => {
     let cartTotal = 0;
 
     if (review) {
-        const currentCart = new Map(JSON.parse(window.localStorage.getItem("cart")));
         currentCart.forEach((entry, key) => {
             cartItems.push(
                 <>
@@ -128,6 +156,7 @@ const Order = () => {
     }
 
 
+    // TODO: Rabbattcode
     return (
         <Container>
             <Group spacing="xs" style={{borderBottom: "solid"}} position="apart">
@@ -156,7 +185,7 @@ const Order = () => {
                 :
                 <div style={{height: "12vh"}}>
                     {orderInputs.map((orderInput, index) =>
-                        <div key={index} ref={focusTrapRef}>
+                        <div key={index}>
                             <Transition
                                 transition={
                                     {
@@ -171,14 +200,19 @@ const Order = () => {
                             >
                                 {(styles) =>
                                     <div style={{...styles}}>
-                                        <TextInput
-                                            p="md"
-                                            placeholder={orderInput.placeholder}
-                                            label={orderInput.label}
-                                            withAsterisk={orderInput.mandatory}
-                                            error={errorState}
-                                            ref={el => ref.current[index] = el}
-                                        />
+                                        <FocusTrap active={count === (index * 2)}>
+                                            <TextInput
+                                                p="md"
+                                                placeholder={orderInput.placeholder}
+                                                label={orderInput.label}
+                                                withAsterisk={orderInput.mandatory}
+                                                error={errorState}
+                                                ref={el => ref.current[index] = el}
+                                                onKeyDown={getHotkeyHandler([
+                                                    ['Enter', handleContinue],
+                                                ])}
+                                            />
+                                        </FocusTrap>
                                     </div>
                                 }
                             </Transition>
@@ -188,20 +222,36 @@ const Order = () => {
             }
 
 
-            <Group p="md" position="apart">
-                <div>
-                    <Text hidden={!review} color="red" style={{cursor: "pointer"}}>Re-enter Details</Text>
-                </div>
+            <Group position="apart" p="xs">
                 {review ?
-                    <Button onClick={handleCheckout} rightIcon={<IconChevronRight/>}
-                            variant="gradient" gradient={{from: "teal", to: "lime", deg: 60}} radius="xl">
-                        Confirm and Order
-                    </Button>
+                    <>
+                        <Text onClick={() => {
+                            setCount(0);
+                            setReview(false);
+                        }} p="md" color="red" style={{cursor: "pointer"}}>Re-enter Details</Text>
+                        <Button p="xs" onClick={handleCheckout} rightIcon={<IconChevronRight/>} size="xs"
+                                variant="gradient" gradient={{from: "teal", to: "lime", deg: 60}} radius="xl">
+                            <Text size="sm">Confirm & Order</Text>
+                        </Button>
+                    </>
                     :
-                    <ThemeIcon style={{cursor: "pointer"}} size="xl" radius="50%" variant="gradient"
-                               gradient={{from: 'teal', to: 'lime', deg: 60}}>
-                        <IconChevronRight onClick={handleContinue}/>
-                    </ThemeIcon>
+                    <>
+                        <div>
+                            <Text
+                                hidden={count === 0}
+                                onClick={() => {
+                                    setCount(count - 2);
+                                }}
+                                p="md" color="red" style={{cursor: "pointer"}}
+                            >
+                                Back
+                            </Text>
+                        </div>
+                        <ThemeIcon style={{cursor: "pointer"}} size="xl" radius="50%" variant="gradient"
+                                   gradient={{from: 'teal', to: 'lime', deg: 60}}>
+                            <IconChevronRight onClick={handleContinue}/>
+                        </ThemeIcon>
+                    </>
                 }
 
             </Group>
