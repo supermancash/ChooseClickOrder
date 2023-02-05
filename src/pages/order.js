@@ -13,37 +13,39 @@ import {
     FocusTrap,
     Center, Progress
 } from "@mantine/core";
-import {IconChevronRight, IconTrashX} from "@tabler/icons-react";
+import {IconChevronRight, IconTrashX, IconCheck, IconX} from "@tabler/icons-react";
 import {useEffect, useRef, useState} from "react";
 import {centsToCurrency} from "@/service/currency";
-import {getHotkeyHandler, useFocusTrap, useHotkeys} from "@mantine/hooks";
+import {getHotkeyHandler, useFocusTrap, useFocusWithin, useHotkeys} from "@mantine/hooks";
 
 const Order = () => {
-    // TODO: progress bar
+    // TODO: check address
 
-    console.log(process.env.VERCEL_URL)
 
     const [count, setCount] = useState(0);
     const [progressValue, setProgressValue] = useState(5)
     const [review, setReview] = useState(false);
     const [errorState, setErrorState] = useState("");
     const [currentCart, setCurrentCart] = useState(new Map());
+    const [cartTotal, setCartTotal] = useState(0);
     const [loadingCheckout, setLoadingCheckout] = useState(false);
+
+    const [discountCode, setDiscountCode] = useState("");
+    const [discountError, setDiscountError] = useState(false);
+    const [discountApplied, setDiscountApplied] = useState(false);
+
     const ref = useRef([]);
     const orderDataRef = useRef(new Map());
+
+    const cartItems = [];
+    const orderReview = [];
+    let cartTotalCopy = 0;
 
 
     // for usability
     useHotkeys([
         ['Enter', () => handleContinue()],
     ]);
-
-
-    useEffect(() => {
-        ref.current = ref.current.slice(0, orderInputs.length);
-        setCurrentCart(new Map(JSON.parse(window.localStorage.getItem("cart"))));
-    }, [])
-
 
     const handleContinue = () => {
 
@@ -62,7 +64,7 @@ const Order = () => {
         setCount(count + 1);
         setTimeout(() => {
             setCount(count + 2);
-            setProgressValue(progressValue+(1/orderInputs.length*100));
+            setProgressValue(progressValue + (1 / orderInputs.length * 100));
         }, 401);
     }
 
@@ -85,6 +87,56 @@ const Order = () => {
             })
     }
 
+    const handleDiscount = () => {
+        if (!discountCode.includes("discount")) return setDiscountError(true)
+        setCartTotal(cartTotal * 0.9);
+        if (discountCode.includes("20")) setCartTotal((cartTotal / 0.9) * 0.8);
+        setDiscountApplied(true);
+    }
+
+    currentCart.forEach((entry, key) => {
+        cartItems.push(
+            <>
+                <Group position="apart">
+                    <Group>
+                        <Avatar
+                            size={60}
+                            radius="50%"
+                            src={"images/" + entry.productDetails.image}
+                        />
+                        <div>
+                            <Text>{entry.productDetails.product}</Text>
+                            <Text color="dimmed" size="sm">
+                                Amount: {entry.amount}
+                            </Text>
+                        </div>
+                    </Group>
+                    <Group>
+                        <Badge color="lime">{centsToCurrency(entry.productDetails.price * entry.amount)}</Badge>
+                    </Group>
+                </Group>
+            </>
+        );
+        cartTotalCopy += entry.productDetails.price * entry.amount;
+    });
+
+
+    if (review) {
+
+        orderDataRef.current.forEach((entry, key) => orderReview.push(
+            <>
+                <Text weight={300}>{key}</Text>
+                <Text>{entry === "" ? "-" : entry}</Text>
+            </>
+        ));
+    }
+
+
+    useEffect(() => {
+        setCartTotal(cartTotalCopy);
+        ref.current = ref.current.slice(0, orderInputs.length);
+        setCurrentCart(new Map(JSON.parse(window.localStorage.getItem("cart"))));
+    }, [cartTotalCopy]);
 
     const orderInputs = [
         {
@@ -125,53 +177,11 @@ const Order = () => {
 
     ];
 
-    const orderReview = [];
-    const cartItems = [];
-    let cartTotal = 0;
-
-    if (review) {
-        currentCart.forEach((entry, key) => {
-            cartItems.push(
-                <>
-                    <Group position="apart">
-                        <Group>
-                            <Avatar
-                                size={60}
-                                radius="50%"
-                                src={"images/" + entry.productDetails.image}
-                            />
-                            <div>
-                                <Text>{entry.productDetails.product}</Text>
-                                <Text color="dimmed" size="sm">
-                                    Amount: {entry.amount}
-                                </Text>
-                            </div>
-                        </Group>
-                        <Group>
-                            <Badge color="lime">{centsToCurrency(entry.productDetails.price * entry.amount)}</Badge>
-                        </Group>
-                    </Group>
-                </>
-            );
-            cartTotal += entry.productDetails.price * entry.amount;
-        });
-
-
-        orderDataRef.current.forEach((entry, key) => orderReview.push(
-            <>
-                <Text weight={300}>{key}</Text>
-                <Text>{entry === "" ? "-" : entry}</Text>
-            </>
-        ));
-    }
-
-    if (currentCart.size === 0) return (
-        <Container p="md">
-            <Center>
-                Your Cart is empty, please add items to your cart to order
-            </Center>
-        </Container>
-    )
+    if (currentCart.size === 0) return (<Container p="md">
+        <Center>
+            Your Cart is empty, please add items to your cart to order
+        </Center>
+    </Container>);
 
     // TODO: Rabbattcode
     return (
@@ -193,6 +203,45 @@ const Order = () => {
                     <Stack p="md">
                         {cartItems}
                     </Stack>
+                    <Group position="right">
+                        {
+                            discountApplied ?
+                                <>
+                                    <IconCheck color="green"/>
+                                    <Text color="dimmed" size="sm">
+                                        Your discount has been applied
+                                    </Text>
+                                </>
+                                :
+                                <div>
+                                    <TextInput radius="xl" placeholder="Discount Code"
+                                               value={discountCode}
+                                               size="sm"
+                                               onChange={(event) => setDiscountCode(event.currentTarget.value)}
+                                               rightSection={
+                                                   <ThemeIcon hidden={discountCode.length < 4}
+                                                              onKeyDown={getHotkeyHandler([
+                                                                  ['Enter', handleDiscount],
+                                                              ])}
+                                                              style={{cursor: "pointer"}} size="lg" radius="50%"
+                                                              variant="gradient"
+                                                              gradient={{from: 'teal', to: 'lime', deg: 60}}
+                                                   >
+                                                       <IconChevronRight
+                                                           onClick={handleDiscount}
+                                                       />
+                                                   </ThemeIcon>
+                                               }
+                                    />
+                                    {discountError &&
+                                        <Group px="md" py="xs">
+                                            <IconX color="red"/>
+                                            <Text size="sm" color="dimmed">Invalid Discount Code</Text>
+                                        </Group>
+                                    }
+                                </div>
+                        }
+                    </Group>
 
                     <Text weight={500} p="md">Your Details</Text>
                     <SimpleGrid style={{width: "80vw"}} cols={2} p="xl">
@@ -272,7 +321,7 @@ const Order = () => {
                                 hidden={count === 0}
                                 onClick={() => {
                                     setCount(count - 2);
-                                    setProgressValue(progressValue-(1/orderInputs.length*100))
+                                    setProgressValue(progressValue - (1 / orderInputs.length * 100))
                                 }} color="red" style={{cursor: "pointer"}}
                             >
                                 Back
