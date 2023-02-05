@@ -251,14 +251,14 @@ const Order = () => {
             }
 
 
-            <Group position="apart" p="xs">
+            <Group position="apart" p="md">
                 {review ?
                     <>
                         <Text onClick={() => {
                             setCount(0);
                             setReview(false);
                             setProgressValue(5)
-                        }} p="md" color="red" style={{cursor: "pointer"}}>Re-enter Details</Text>
+                        }} color="red" style={{cursor: "pointer"}}>Re-enter Details</Text>
                         <Button p="xs" onClick={handleCheckout} rightIcon={<IconChevronRight/>} size="xs"
                                 loading={loadingCheckout}
                                 variant="gradient" gradient={{from: "teal", to: "lime", deg: 60}} radius="xl">
@@ -273,8 +273,7 @@ const Order = () => {
                                 onClick={() => {
                                     setCount(count - 2);
                                     setProgressValue(progressValue-(1/orderInputs.length*100))
-                                }}
-                                p="md" color="red" style={{cursor: "pointer"}}
+                                }} color="red" style={{cursor: "pointer"}}
                             >
                                 Back
                             </Text>
