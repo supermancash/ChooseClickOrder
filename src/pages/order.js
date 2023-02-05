@@ -11,7 +11,7 @@ import {
     Transition,
     Button,
     FocusTrap,
-    Center
+    Center, Progress
 } from "@mantine/core";
 import {IconChevronRight, IconTrashX} from "@tabler/icons-react";
 import {useEffect, useRef, useState} from "react";
@@ -24,6 +24,7 @@ const Order = () => {
     console.log(process.env.VERCEL_URL)
 
     const [count, setCount] = useState(0);
+    const [progressValue, setProgressValue] = useState(5)
     const [review, setReview] = useState(false);
     const [errorState, setErrorState] = useState("");
     const [currentCart, setCurrentCart] = useState(new Map());
@@ -61,6 +62,7 @@ const Order = () => {
         setCount(count + 1);
         setTimeout(() => {
             setCount(count + 2);
+            setProgressValue(progressValue+(1/orderInputs.length*100));
         }, 401);
     }
 
@@ -76,9 +78,9 @@ const Order = () => {
             }),
         }).then(res => res.json())
             .then(res => {
-                if(res.ok) {
+                if (res.ok) {
                     setLoadingCheckout(false);
-                    window.location="/?thankyou=true&email=" + orderDataRef.current.get("Email");
+                    window.location = "/?thankyou=true&email=" + orderDataRef.current.get("Email");
                 }
             })
     }
@@ -163,7 +165,7 @@ const Order = () => {
         ));
     }
 
-    if(currentCart.size===0) return(
+    if (currentCart.size === 0) return (
         <Container p="md">
             <Center>
                 Your Cart is empty, please add items to your cart to order
@@ -198,41 +200,53 @@ const Order = () => {
                     </SimpleGrid>
                 </div>
                 :
-                <div style={{height: "12vh"}}>
-                    {orderInputs.map((orderInput, index) =>
-                        <div key={index}>
-                            <Transition
-                                transition={
-                                    {
-                                        in: {transform: "scaleX(1)"},
-                                        out: {transform: "scaleX(0)"},
-                                        transitionProperty: 'transform',
+                <div>
+                    <div style={{paddingLeft: "15px", paddingRight: "15px"}}>
+                        <Progress
+                            mt="md"
+                            size="xl"
+                            value={progressValue}
+                            radius="xl"
+                            color="teal"
+                            animate
+                        />
+                    </div>
+                    <div style={{height: "12vh"}}>
+                        {orderInputs.map((orderInput, index) =>
+                            <div key={index}>
+                                <Transition
+                                    transition={
+                                        {
+                                            in: {transform: "scaleX(1)"},
+                                            out: {transform: "scaleX(0)"},
+                                            transitionProperty: 'transform',
+                                        }
                                     }
-                                }
-                                duration={400} timingFunction="ease"
-                                mounted={count === (index * 2)}
-                                hidden={count !== (index * 2)}
-                            >
-                                {(styles) =>
-                                    <div style={{...styles}}>
-                                        <FocusTrap active={count === (index * 2)}>
-                                            <TextInput
-                                                p="md"
-                                                placeholder={orderInput.placeholder}
-                                                label={orderInput.label}
-                                                withAsterisk={orderInput.mandatory}
-                                                error={errorState}
-                                                ref={el => ref.current[index] = el}
-                                                onKeyDown={getHotkeyHandler([
-                                                    ['Enter', handleContinue],
-                                                ])}
-                                            />
-                                        </FocusTrap>
-                                    </div>
-                                }
-                            </Transition>
-                        </div>
-                    )}
+                                    duration={400} timingFunction="ease"
+                                    mounted={count === (index * 2)}
+                                    hidden={count !== (index * 2)}
+                                >
+                                    {(styles) =>
+                                        <div style={{...styles}}>
+                                            <FocusTrap active={count === (index * 2)}>
+                                                <TextInput
+                                                    p="md"
+                                                    placeholder={orderInput.placeholder}
+                                                    label={orderInput.label}
+                                                    withAsterisk={orderInput.mandatory}
+                                                    error={errorState}
+                                                    ref={el => ref.current[index] = el}
+                                                    onKeyDown={getHotkeyHandler([
+                                                        ['Enter', handleContinue],
+                                                    ])}
+                                                />
+                                            </FocusTrap>
+                                        </div>
+                                    }
+                                </Transition>
+                            </div>
+                        )}
+                    </div>
                 </div>
             }
 
@@ -243,8 +257,10 @@ const Order = () => {
                         <Text onClick={() => {
                             setCount(0);
                             setReview(false);
+                            setProgressValue(5)
                         }} p="md" color="red" style={{cursor: "pointer"}}>Re-enter Details</Text>
-                        <Button p="xs" onClick={handleCheckout} rightIcon={<IconChevronRight/>} size="xs" loading={loadingCheckout}
+                        <Button p="xs" onClick={handleCheckout} rightIcon={<IconChevronRight/>} size="xs"
+                                loading={loadingCheckout}
                                 variant="gradient" gradient={{from: "teal", to: "lime", deg: 60}} radius="xl">
                             <Text size="sm">Confirm & Order</Text>
                         </Button>
@@ -256,6 +272,7 @@ const Order = () => {
                                 hidden={count === 0}
                                 onClick={() => {
                                     setCount(count - 2);
+                                    setProgressValue(progressValue-(1/orderInputs.length*100))
                                 }}
                                 p="md" color="red" style={{cursor: "pointer"}}
                             >
