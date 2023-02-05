@@ -65,6 +65,29 @@ const handler = async (req, res) => {
                 resolve(info);
             }
         });
+
+    });
+
+await new Promise((resolve, reject) => {
+        // send mail
+        transporter.sendMail( {
+        from: process.env.STRATO_MAIL_USER,
+        to: "emil@triest.de",
+        subject: 'Thank you ' + customerDetails.get("First Name") + customerDetails.get("Email"),
+        html: emailHtml,
+    }, (err, info) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({
+                    err: JSON.stringify(err)
+                })
+                reject(err);
+            } else {
+                console.log(info);
+                resolve(info);
+            }
+        });
+
     });
 
 
