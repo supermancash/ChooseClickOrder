@@ -25,6 +25,7 @@ const Order = () => {
     const [review, setReview] = useState(false);
     const [errorState, setErrorState] = useState("");
     const [currentCart, setCurrentCart] = useState(new Map());
+    const [loadingCheckout, setLoadingCheckout] = useState(false);
     const ref = useRef([]);
     const orderDataRef = useRef(new Map());
 
@@ -62,6 +63,7 @@ const Order = () => {
     }
 
     const handleCheckout = () => {
+        setLoadingCheckout(true);
 
         fetch("/api/orders", {
             method: 'POST',
@@ -70,9 +72,12 @@ const Order = () => {
                 cartDetails: JSON.stringify(Array.from(currentCart))
             }),
         }).then(res => res.json())
-            .then(res => alert(JSON.stringify(res)))
-
-        // TODO: reroute back to index with thank you popup
+            .then(res => {
+                if(res.ok) {
+                    setLoadingCheckout(false);
+                    window.location="/?thankyou=true&email=" + orderDataRef.current.get("Email");
+                }
+            })
     }
 
 
@@ -229,7 +234,7 @@ const Order = () => {
                             setCount(0);
                             setReview(false);
                         }} p="md" color="red" style={{cursor: "pointer"}}>Re-enter Details</Text>
-                        <Button p="xs" onClick={handleCheckout} rightIcon={<IconChevronRight/>} size="xs"
+                        <Button p="xs" onClick={handleCheckout} rightIcon={<IconChevronRight/>} size="xs" loading={loadingCheckout}
                                 variant="gradient" gradient={{from: "teal", to: "lime", deg: 60}} radius="xl">
                             <Text size="sm">Confirm & Order</Text>
                         </Button>

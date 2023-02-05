@@ -1,8 +1,9 @@
 import Head from 'next/head';
 import {products} from "@/data/products";
-import {Card, Container, Group, Image, SimpleGrid, Text, Badge, ThemeIcon} from '@mantine/core';
+import {Card, Container, Group, Image, SimpleGrid, Text, Badge, ThemeIcon, Modal} from '@mantine/core';
 import {IconShoppingCart, IconShoppingCartPlus} from "@tabler/icons-react";
 import {centsToCurrency} from "@/service/currency";
+import {useRouter} from "next/router";
 
 
 export default function Home(props) {
@@ -17,6 +18,11 @@ export default function Home(props) {
         props.setCartOpen(true);
     }
 
+    // TODO: thank you popup
+
+    const router = useRouter();
+    console.log(router.query)
+
     return (
         <>
             <Head>
@@ -25,6 +31,26 @@ export default function Home(props) {
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
             </Head>
             <main style={{background: "#F8F9FA"}}>
+
+                <Modal
+                    opened={Boolean(router.query.thankyou) === true}
+                    onClose={() => router.push('/')}
+                    title="Thank you!"
+                >
+                    <Image src="https://media3.giphy.com/media/oF5oUYTOhvFnO/giphy.gif?cid=ecf05e47iu372f8dsnsokl9hmp1ct0trdrf75dyp6gwgh41j&rid=giphy.gif&ct=g"
+                           width="100"
+                    />
+                    <br/>
+                    <Text>
+                        We have received your order!
+                    </Text>
+                    <Text>
+                        Please check your inbox at <i>{router.query.email}</i> for our
+                        confirmation email.
+                    </Text>
+                </Modal>
+
+
                 <Container size="xl">
                     <SimpleGrid p="md" cols={1} breakpoints={[{minWidth: "sm", cols: 3, spacing: 'sm'}]}>
                         {products.map((product, index) =>

@@ -16,8 +16,6 @@ const handler = async (req, res) => {
     console.log(cartDetails);
     // TODO: save to db
 
-
-    // TODO: send email
     const transporter = nodemailer.createTransport({
         host: 'smtp.strato.de',
         port: 587,
