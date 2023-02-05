@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import {products} from "@/data/products";
-import {Card, Container, Group, Image, SimpleGrid, Text, Badge, ThemeIcon, Modal} from '@mantine/core';
+import {Card, Container, Group, Image, SimpleGrid, Text, Badge, ThemeIcon, Modal, Center} from '@mantine/core';
 import {IconShoppingCart, IconShoppingCartPlus} from "@tabler/icons-react";
 import {centsToCurrency} from "@/service/currency";
 import {useRouter} from "next/router";
@@ -21,7 +21,6 @@ export default function Home(props) {
     // TODO: thank you popup
 
     const router = useRouter();
-    console.log(router.query)
 
     return (
         <>
@@ -35,18 +34,27 @@ export default function Home(props) {
                 <Modal
                     opened={Boolean(router.query.thankyou) === true}
                     onClose={() => router.push('/')}
-                    title="Thank you!"
                 >
-                    <Image src="https://media3.giphy.com/media/oF5oUYTOhvFnO/giphy.gif?cid=ecf05e47iu372f8dsnsokl9hmp1ct0trdrf75dyp6gwgh41j&rid=giphy.gif&ct=g"
-                           width="100"
-                    />
+                    <Text weight={300} align="center">Choose. Click. Order</Text>
+                    <br/>
+                    <Text align="center">Thank you for your order, your products will arive soon</Text>
+                    <br/>
+                    <Center >
+                        <Image
+                            width={250}
+                            height={186}
+                            src={"https://media3.giphy.com/media/oF5oUYTOhvFnO/giphy.gif?cid=ecf05e47iu372f8dsnsokl9hmp1ct0trdrf75dyp6gwgh41j&rid=giphy.gif&ct=g"}
+                            alt="With default placeholder"
+                            withPlaceholder
+                        />
+                    </Center>
                     <br/>
                     <Text>
-                        We have received your order!
+                        We have sent you a
+                        confirmation mail regarding your order
                     </Text>
                     <Text>
-                        Please check your inbox at <i>{router.query.email}</i> for our
-                        confirmation email.
+                        Please check your inbox at <i>{router.query.email}</i>
                     </Text>
                 </Modal>
 
