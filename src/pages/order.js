@@ -9,7 +9,9 @@ import {
     TextInput,
     ThemeIcon,
     Transition,
-    Button, FocusTrap
+    Button,
+    FocusTrap,
+    Center
 } from "@mantine/core";
 import {IconChevronRight, IconTrashX} from "@tabler/icons-react";
 import {useEffect, useRef, useState} from "react";
@@ -17,7 +19,7 @@ import {centsToCurrency} from "@/service/currency";
 import {getHotkeyHandler, useFocusTrap, useHotkeys} from "@mantine/hooks";
 
 const Order = () => {
-    // TODO: check that cart isn't empty
+    // TODO: progress bar
 
     console.log(process.env.VERCEL_URL)
 
@@ -64,6 +66,7 @@ const Order = () => {
 
     const handleCheckout = () => {
         setLoadingCheckout(true);
+        localStorage.setItem("cart", JSON.stringify(Array.from(new Map())));
 
         fetch("/api/orders", {
             method: 'POST',
@@ -160,6 +163,13 @@ const Order = () => {
         ));
     }
 
+    if(currentCart.size===0) return(
+        <Container p="md">
+            <Center>
+                Your Cart is empty, please add items to your cart to order
+            </Center>
+        </Container>
+    )
 
     // TODO: Rabbattcode
     return (

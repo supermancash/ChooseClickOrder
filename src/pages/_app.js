@@ -19,6 +19,7 @@ import Link from "next/link";
 import styles from "@/styles/Globals.css";
 import {useEffect, useState} from "react";
 import {centsToCurrency} from "@/service/currency";
+import {useRouter} from "next/router";
 
 export default function App(props) {
     const {Component, pageProps} = props;
@@ -116,6 +117,8 @@ export default function App(props) {
         totalCartValue += entry.productDetails.price * entry.amount;
     });
 
+    const router = useRouter();
+
     return (
         <>
             <Head>
@@ -153,8 +156,8 @@ export default function App(props) {
                         <Link href="/">
                             <Text align="center" size="lg" weight={300}>Choose. Click. Order.</Text>
                         </Link>
-                        <div style={{paddingRight: "1%", width: "9%"}}>
-                            <ThemeIcon radius="xl" size="lg" style={{cursor: "pointer"}} onClick={() => {
+                        <div style={{paddingRight: "1%", width: "9%"}} >
+                            <ThemeIcon hidden={router.pathname==="/order"} radius="xl" size="lg" style={{cursor: "pointer"}} onClick={() => {
                                 setCartOpen(true)
                             }}
                                        variant="gradient" gradient={{from: 'teal', to: 'lime', deg: 60}}>
