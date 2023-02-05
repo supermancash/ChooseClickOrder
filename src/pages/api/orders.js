@@ -5,7 +5,7 @@ import nodemailer from "nodemailer";
 import {render} from "@react-email/render";
 import Email from "@/email/templates/confirmationMail";
 
-const handler = (req, res) => {
+const handler = async (req, res) => {
 
     const reqJSON = JSON.parse(req.body);
     const customerDetails = new Map(JSON.parse(reqJSON.customerDetails));
@@ -28,6 +28,22 @@ const handler = (req, res) => {
         },
     });
 
+    await new Promise((resolve, reject) => {
+        // verify connection configuration
+        transporter.verify(function (error, success) {
+            if (error) {
+                console.log(error);
+                res.status(500).json({
+                    err: JSON.stringify(error)
+                })
+                reject(error);
+            } else {
+                console.log("Server is ready to take our messages");
+                resolve(success);
+            }
+        });
+    });
+
     const emailHtml = render(Email({customerDetails: customerDetails, cartDetails: cartDetails}));
 
     const options = {
@@ -37,11 +53,21 @@ const handler = (req, res) => {
         html: emailHtml,
     };
 
-    try {
-        transporter.sendMail(options).then(r => console.log(r));
-    } catch(e) {
-        console.log(e)
-    }
+    await new Promise((resolve, reject) => {
+        // send mail
+        transporter.sendMail(options, (err, info) => {
+            if (err) {
+                console.error(err);
+                res.status(500).json({
+                    err: JSON.stringify(err)
+                })
+                reject(err);
+            } else {
+                console.log(info);
+                resolve(info);
+            }
+        });
+    });
 
 
     res.status(200).json({
